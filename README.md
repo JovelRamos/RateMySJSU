@@ -1,8 +1,8 @@
-# SJSU Class Schedule Enhancer
+# SJSU RMP Extension
 
 ## Overview
 
-The SJSU Class Schedule Enhancer is a Google Chrome extension designed to integrate RateMyProfessors (RMP) data directly into the class schedule tables at `https://www.sjsu.edu/classes/schedules/*`. This extension enriches the standard schedule view by providing additional insights into professors' ratings, aiding students in making informed decisions when selecting courses.
+The SJSU RMP Extension is a Google Chrome extension designed to integrate RateMyProfessors (RMP) data directly into the class schedule tables at `https://www.sjsu.edu/classes/schedules/*`. This extension enriches the standard schedule view by providing additional insights into professors' ratings, aiding students in making informed decisions when selecting courses.
 
 ## Features
 
