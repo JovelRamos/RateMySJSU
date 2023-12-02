@@ -32,7 +32,7 @@ The SJSU RMP Extension is a Google Chrome extension designed to integrate RateMy
 
 ## Contributing
 
-We welcome contributions to the SJSU Class Schedule Enhancer! If you're interested in improving the extension or adding new features, please fork the repository and submit a pull request.
+We welcome contributions to the SJSU RMP Extension! If you're interested in improving the extension or adding new features, please fork the repository and submit a pull request.
 
 ## Disclaimer
 
