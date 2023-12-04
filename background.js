@@ -34,11 +34,15 @@ async function handleMessages(message) {
   if (message.target !== 'background') {
     return;
   }
-
-
   switch (message.type) {
     case 'scrape-professor-data':
       handleScrapedProfessorData(message.data);
+      break;
+    case 'raw-review-data':
+      sendMessageToOffscreenDocument('raw-review-data', message.data);
+      break;
+    case 'scrape-review-data':
+      handleScrapedReviewData(message.data);
       break;
     default:
       console.warn(`Unexpected message type received: '${message.type}'.`);
@@ -56,14 +60,23 @@ async function handleScrapedProfessorData(data) {
       console.log('Professor data stored successfully.');
     }
   });
+
+  await chrome.offscreen.closeDocument();
 }
 
+async function handleScrapedReviewData(data) {
+  console.log('Received scraped review data', data);
 
-async function closeOffscreenDocument() {
-  if (!(await hasDocument())) {
-    return;
-  }
-  await chrome.offscreen.closeDocument();
+
+  chrome.storage.local.set({ 'reviewMap': data }, function() {
+    if (chrome.runtime.lastError) {
+      console.error(`Error storing professors data: ${chrome.runtime.lastError}`);
+    } else {
+      console.log('Professor data stored successfully.');
+    }
+  });
+
+
 }
 
 async function hasDocument() {

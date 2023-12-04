@@ -7,9 +7,9 @@
     "service_worker": "background.js"
   },
   "action": {},
-  "permissions": ["offscreen", "storage"],
+  "permissions": ["offscreen", "storage", "https://www.ratemyprofessors.com/*"],
   "host_permissions": [
-    "https://www.sjsu.edu/classes/schedules/*"
+    "https://www.sjsu.edu/classes/schedules/*", "https://www.ratemyprofessors.com/*"
   ],
   "content_scripts": [
     {
@@ -23,7 +23,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["data/data.json"],
+      "resources": ["icons/add.png", "icons/comment.png"],
       "matches": ["<all_urls>"]
     }
   ]

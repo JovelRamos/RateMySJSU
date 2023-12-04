@@ -1,6 +1,8 @@
 let professorData = {};
 let dataTable;
 
+
+
 loadProfessorData().then(() => {
   if (window.jQuery && jQuery.fn.DataTable.isDataTable('#classSchedule')) {
     dataTable = jQuery('#classSchedule').DataTable();
@@ -25,7 +27,31 @@ function loadProfessorData() {
   });
 }
 
+
+function sendToBackground(type, data) {
+  chrome.runtime.sendMessage({
+    type,
+    target: 'background',
+    data
+  });
+}
+
+
 function modifyTable() {
+
+  jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+    "rating-pre": function (data) {
+      return data === 'No Rating' ? -1 : parseFloat(data) || 0;
+    },
+    "rating-asc": function (a, b) {
+      return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "rating-desc": function (a, b) {
+      return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
+  });
+
+
   if (window.jQuery) {
     if (typeof jQuery.fn.DataTable === 'function') {
       if (jQuery.fn.DataTable.isDataTable('#classSchedule')) {
@@ -45,6 +71,8 @@ function modifyTable() {
       theadTr.append('<th>Difficulty Level</th>');
       theadTr.append('<th>Would Take Again %</th>');
       theadTr.append('<th>Review Count</th>');
+      theadTr.append('<th>Reviews</th>');
+      
 
       const tbodyTrs = jQuery('#classSchedule tbody tr');
       tbodyTrs.each(function () {
@@ -52,14 +80,73 @@ function modifyTable() {
         jQuery(this).append('<td></td>');
         jQuery(this).append('<td></td>');
         jQuery(this).append('<td></td>');
+        jQuery(this).append('<td class="actions-cell"></td>');
       });
+
+      var addButtonSrc = chrome.runtime.getURL("./icons/add.png");
+      var commentButtonSrc = chrome.runtime.getURL("./icons/comment.png");
 
       dataTable = jQuery('#classSchedule').DataTable({
         "columnDefs": [
-          { "searchable": false, "targets": [3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] }
+          { "searchable": false, "targets": [3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] },
+          { "type": "rating", "targets": [OVERALL_RATING_INDEX, DIFFICULTY_RATING_INDEX, RETAKE_PERCENTAGE_INDEX] },
+          {
+            "targets": -1,
+            "orderable": false,
+            "data": null,
+            "defaultContent": '<button class="action-btn action-btn-spacing add-btn"><img src="' + addButtonSrc + '" alt="Add"/></button>' +
+            '<button class="action-btn comment-btn"><img src="' + commentButtonSrc + '" alt="Comment"/></button>'
+          }
         ],
         "destroy": true
       });
+
+
+
+      $('#classSchedule').on('click', '.add-btn', function () {
+        var rowData = dataTable.row(jQuery(this).parents('tr')).data();
+        var instructorName = jQuery('<div>').html(rowData[9]).find('a').text();
+        
+        if (instructorName) {
+          var names = instructorName.split(' ');
+          if (names.length >= 2) {
+            var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
+            var professorInfo = professorData[key];
+            if (professorInfo && professorInfo.legacyID) {
+              var addUrl = 'https://www.ratemyprofessors.com/add/professor-rating/' + professorInfo.legacyID;
+              window.open(addUrl, '_blank');
+            }
+          }
+        }
+      });
+      
+      $('#classSchedule').on('click', '.comment-btn', function () {
+        var rowData = dataTable.row(jQuery(this).parents('tr')).data();
+        var instructorName = jQuery('<div>').html(rowData[9]).find('a').text();
+        
+        if (instructorName) {
+          var names = instructorName.split(' ');
+          if (names.length >= 2) {
+            var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
+            var professorInfo = professorData[key];
+            if (professorInfo && professorInfo.legacyID) {
+                // Construct the URL for scraping
+                var theURL = `https://www.ratemyprofessors.com/professor/${professorInfo.legacyID}`;
+                sendToBackground('raw-review-data', theURL);
+            }
+
+            chrome.storage.local.get('reviewMap', function(result) {
+              var reviewData = result.reviewMap[key];
+              if (reviewData) {
+                displayReviewData(reviewData);
+              }});
+          }
+        }
+      });
+
+
+
+
 
       dataTable.rows().every(function () {
         var row = this.node();
@@ -99,6 +186,8 @@ function modifyTable() {
               );
               dataTable.cell(row, NUMBER_OF_RATINGS_INDEX).data(parseInt(professorInfo.numberOfRatings));
               }
+              
+
             } else {
               dataTable.cell(row, OVERALL_RATING_INDEX).data('No Rating');
               dataTable.cell(row, DIFFICULTY_RATING_INDEX).data('No Rating');
@@ -116,6 +205,7 @@ function modifyTable() {
         }
       });
 
+      dataTable.columns.adjust().draw();
       dataTable.draw();
 
     } else {
@@ -124,5 +214,8 @@ function modifyTable() {
   } else {
     console.error('jQuery is not available.');
   }
+
+  
 }
+
 
