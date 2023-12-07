@@ -1,8 +1,8 @@
-# SJSU RMP Extension
+# RateMySJSU
 
 ## Overview
 
-The SJSU RMP Extension is a Google Chrome extension designed to integrate RateMyProfessors (RMP) data directly into the class schedule tables at `https://www.sjsu.edu/classes/schedules/*`. This extension enriches the standard schedule view by providing additional insights into professors' ratings, aiding students in making informed decisions when selecting courses.
+The RateMySJSU is a Google Chrome extension designed to integrate RateMyProfessors (RMP) data directly into the class schedule tables at `https://www.sjsu.edu/classes/schedules/*`. This extension enriches the standard schedule view by providing additional insights into professors' ratings, aiding students in making informed decisions when selecting courses.
 
 ## Features
 
@@ -13,7 +13,7 @@ The SJSU RMP Extension is a Google Chrome extension designed to integrate RateMy
 
 ## Installation
 
-1. Download the extension from the [GitHub repository](https://github.com/AndrewPun/rmpextension).
+1. Download the extension from the [GitHub repository](https://github.com/JovelRamos/RateMySJSU).
 2. Open Google Chrome and navigate to `chrome://extensions/`.
 3. Enable 'Developer Mode' at the top-right corner.
 4. Click on 'Load unpacked' and select the downloaded extension folder.
@@ -40,4 +40,4 @@ This extension is developed independently and is not officially affiliated with 
 
 ## Support
 
-For support, feature requests, or bug reporting, please open an issue in the [GitHub repository](https://github.com/AndrewPun/rmpextension).
+For support, feature requests, or bug reporting, please open an issue in the [GitHub repository](https://github.com/JovelRamos/RateMySJSU).
