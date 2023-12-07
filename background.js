@@ -44,35 +44,36 @@ async function handleMessages(message) {
     case 'scrape-review-data':
       handleScrapedReviewData(message.data);
       break;
+    case 'notification':
+      showNotification(message.data);
+    break;
     default:
       console.warn(`Unexpected message type received: '${message.type}'.`);
   }
 }
 
 async function handleScrapedProfessorData(data) {
-  console.log('Received scraped professor data', data);
 
 
   chrome.storage.local.set({ 'professorsMap': data }, function() {
     if (chrome.runtime.lastError) {
       console.error(`Error storing professors data: ${chrome.runtime.lastError}`);
-    } else {
-      console.log('Professor data stored successfully.');
     }
   });
-
   await chrome.offscreen.closeDocument();
 }
 
 async function handleScrapedReviewData(data) {
-  console.log('Received scraped review data', data);
 
 
   chrome.storage.local.set({ 'reviewMap': data }, function() {
     if (chrome.runtime.lastError) {
       console.error(`Error storing professors data: ${chrome.runtime.lastError}`);
     } else {
-      console.log('Professor data stored successfully.');
+      chrome.runtime.sendMessage({
+        type: 'review-data',
+        target: 'popup'
+      });
     }
   });
 
@@ -87,4 +88,16 @@ async function hasDocument() {
     }
   }
   return false;
+}
+
+function showNotification(professorName){
+  const notificationMessage = `Click the extension icon to see ${professorName}'s reviews!`;
+
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: './icons/icon128.png', // Path to your extension's icon
+    title: 'Review Comment',
+    message: notificationMessage,
+    priority: 2
+  });
 }

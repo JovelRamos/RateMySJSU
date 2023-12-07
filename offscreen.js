@@ -22,11 +22,10 @@ async function handleMessages(message) {
 }
 
 function scrapeProfessorData(htmlString) {
-  console.log("Scraping data from HTML string.");
 
   const parser = new DOMParser();
   const document = parser.parseFromString(htmlString, 'text/html');
-  const professorsMap = {}; // Initialize the map to store professor data
+  const professorsMap = {};
 
   document.querySelectorAll("[class^='TeacherCard__StyledTeacherCard-syjs0d-0']").forEach(function (card) {
     const nameText = card.querySelector("[class^='CardName__StyledCardName-sc-1gyrgim-0']").textContent;
@@ -42,7 +41,7 @@ function scrapeProfessorData(htmlString) {
     const legacyID = legacyIDHref.split("/")[4];
 
     const key = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`;
-    professorsMap[key] = { // Directly add the professor to the map
+    professorsMap[key] = {
       firstName,
       lastName,
       overallRating,
@@ -57,7 +56,6 @@ function scrapeProfessorData(htmlString) {
 }
 
 function scrapeReviewData(htmlString) {
-  console.log("Scraping review data from HTML string.");
 
   const parser = new DOMParser();
   const document = parser.parseFromString(htmlString, 'text/html');
@@ -65,10 +63,10 @@ function scrapeReviewData(htmlString) {
   const scrapedData = [];
 
   Array.from(document.querySelectorAll("[class^='Rating__StyledRating-sc-1rhvpxz-1 jcIQzP']"))
-  .slice(0, 3) // Take only the first three cards
+  .slice(0, 3)
   .forEach(function (card) {
 
-    const qualityRating = card.querySelector(".CardNumRating__CardNumRatingNumber-sc-17t4b9u-2.gcFhmN")?.textContent.trim();
+    const qualityRating = card.querySelector("[class*='CardNumRating__CardNumRatingNumber-sc-17t4b9u-']")?.textContent.trim();
     const difficultyRating = card.querySelector(".CardNumRating__CardNumRatingNumber-sc-17t4b9u-2.cDKJcc")?.textContent.trim();
     const comments = card.querySelector(".Comments__StyledComments-dzzyvm-0")?.textContent.trim();
     const wouldTakeAgain = card.querySelector("span")?.textContent.trim();
@@ -85,18 +83,16 @@ function scrapeReviewData(htmlString) {
     });
 });
 
-  console.log(scrapedData);
-
-  // Now, send this data back to your content script or background page
+  
   sendToBackground('scrape-review-data', scrapedData);
 
 }
 
 function sendToBackground(type, data) {
+
   chrome.runtime.sendMessage({
     type,
     target: 'background',
     data
   });
 }
-

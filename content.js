@@ -1,7 +1,7 @@
 let professorData = {};
 let dataTable;
 
-
+removeButton();
 
 loadProfessorData().then(() => {
   if (window.jQuery && jQuery.fn.DataTable.isDataTable('#classSchedule')) {
@@ -10,8 +10,14 @@ loadProfessorData().then(() => {
   modifyTable();
 });
 
+function removeButton() {
+  var button = document.getElementById('btnLoadTable');
+  if (button) {
+    button.parentNode.removeChild(button);
+  }
+}
+
 function loadProfessorData() {
-  console.log('loadProfessorData called');
 
   return new Promise((resolve, reject) => {
     chrome.storage.local.get('professorsMap', (result) => {
@@ -19,7 +25,6 @@ function loadProfessorData() {
         console.error('Error retrieving professor data:', chrome.runtime.lastError);
         reject(chrome.runtime.lastError);
       } else {
-        console.log('Retrieved professor data:', result.professorsMap);
         professorData = result.professorsMap;
         resolve();
       }
@@ -35,6 +40,7 @@ function sendToBackground(type, data) {
     data
   });
 }
+
 
 
 function modifyTable() {
@@ -88,7 +94,8 @@ function modifyTable() {
 
       dataTable = jQuery('#classSchedule').DataTable({
         "columnDefs": [
-          { "searchable": false, "targets": [3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] },
+          { "className": "dt-center", "targets": "_all" },
+          { "searchable": false, "targets": [3, 5, 6, 7, 8, 10, 11, 12, 13, 14] },
           { "type": "rating", "targets": [OVERALL_RATING_INDEX, DIFFICULTY_RATING_INDEX, RETAKE_PERCENTAGE_INDEX] },
           {
             "targets": -1,
@@ -98,6 +105,28 @@ function modifyTable() {
             '<button class="action-btn comment-btn"><img src="' + commentButtonSrc + '" alt="Comment"/></button>'
           }
         ],
+        "drawCallback": function(settings) {
+          // This function runs every time the table is drawn (e.g., pagination change)
+          var api = new jQuery.fn.dataTable.Api(settings);
+          api.rows().every(function () {
+            var row = this.node();
+            var data = this.data();
+            var instructorName = jQuery('<div>').html(data[9]).find('a').text(); // Adjust the index if necessary
+            
+            if (instructorName) {
+              var names = instructorName.split(' ');
+              if (names.length >= 2) {
+                var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
+                var professorInfo = professorData[key];
+    
+                if (professorInfo) {
+                  jQuery(row).find('.action-btn').show();
+                  jQuery(row).find('.comment-btn').show();
+              }
+            }
+          }
+          });
+        },
         "destroy": true
       });
 
@@ -130,23 +159,15 @@ function modifyTable() {
             var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
             var professorInfo = professorData[key];
             if (professorInfo && professorInfo.legacyID) {
-                // Construct the URL for scraping
                 var theURL = `https://www.ratemyprofessors.com/professor/${professorInfo.legacyID}`;
+                chrome.storage.local.set({ 'reviewUrl': theURL });
+                chrome.storage.local.set({ 'reviewName': instructorName });
                 sendToBackground('raw-review-data', theURL);
+                sendToBackground('notification', instructorName);
             }
-
-            chrome.storage.local.get('reviewMap', function(result) {
-              var reviewData = result.reviewMap[key];
-              if (reviewData) {
-                displayReviewData(reviewData);
-              }});
           }
         }
       });
-
-
-
-
 
       dataTable.rows().every(function () {
         var row = this.node();
@@ -154,13 +175,11 @@ function modifyTable() {
         var cellHtml = rowData[9];
 
         var instructorName = jQuery('<div>').html(cellHtml).find('a').text();
-        console.log('Instructor Name:', instructorName);
 
         if (instructorName) {
           var names = instructorName.split(' ');
           if (names.length >= 2) {
             var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
-            console.log('Generated key:', key);
 
             var professorInfo = professorData[key];
             if (professorInfo) {
@@ -186,6 +205,9 @@ function modifyTable() {
               );
               dataTable.cell(row, NUMBER_OF_RATINGS_INDEX).data(parseInt(professorInfo.numberOfRatings));
               }
+              jQuery(row).find('.action-btn').show();
+              jQuery(row).find('.comment-btn').show();
+
               
 
             } else {

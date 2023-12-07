@@ -70,6 +70,7 @@ table.dataTable tbody tr.selected {
 table.dataTable tbody th,
 table.dataTable tbody td {
     padding: 8px 10px
+
 }
 
 table.dataTable.row-border tbody th,
@@ -317,7 +318,7 @@ table.dataTable tfoot td.dt-head-nowrap {
 
 table.dataTable tbody th.dt-body-left,
 table.dataTable tbody td.dt-body-left {
-    text-align: left
+    text-align: center
 }
 
 table.dataTable tbody th.dt-body-center,
@@ -544,3 +545,15 @@ table.dataTable td {
 .action-btn-spacing {
     margin-right: 2px;
 }
+
+.action-btn {
+    display: none;
+    cursor: pointer;
+  }  
+
+
+.comment-btn {
+    display: none;
+    cursor: pointer;
+  }  
+

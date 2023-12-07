@@ -1,0 +1,318 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    min-width: 600px;
+    display: inline-flex
+  }
+  
+  #dataContainer {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+/* Styles based on provided CSS classes */
+.eXfReS {
+    -webkit-align-items: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-self: center;
+    align-items: center;
+    -webkit-align-self: center;
+    -ms-flex-item-align: center;
+    align-self: center;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    font-size: 16px;
+    padding-right: 22px;
+    text-transform: uppercase;
+    font-family: Poppins,sans-serif;
+    font-weight: 900;
+}
+  
+  .gcFhmN {
+    align-self: center;
+    background: #7ff6c3;
+    height: 50px;
+    line-height: 42px;
+    margin-bottom: 8px;
+    padding: 14px 10px;
+    width: 72px;
+    font-size: 32px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 900;
+    text-align: center;
+  }
+  
+  .bUneqk {
+    align-self: center;
+    background: #ff9c9c;
+    height: 50px;
+    line-height: 42px;
+    margin-bottom: 8px;
+    padding: 14px 10px;
+    width: 72px;
+    font-size: 32px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 900;
+    text-align: center;
+  }
+  
+  .icXUyq {
+    align-self: center;
+    background: #fff170;
+    height: 50px;
+    line-height: 42px;
+    margin-bottom: px;
+    padding: 14px 10px;
+    width: 72px;
+    font-size: 32px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .cDKJcc {
+    align-self: center;
+    background: #e4e4e4;
+    height: 50px;
+    line-height: 42x;
+    margin-bottom: 8px;
+    padding: 14px 10px;
+    width: 72px;
+    font-size: 32px;
+    font-family: 'Poppins' ,sans-serif;
+    font-weight: 900;
+    text-align: center;
+}
+
+  
+  .gRjWel {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 30px;
+  }
+  
+  .jTpfex {
+    -webkit-align-items: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    margin: 5px 0 10px;
+    min-height: 31px;
+}
+
+.eXfReS {
+    -webkit-align-items: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-align-self: center;
+    -ms-flex-item-align: center;
+    align-self: center;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    font-size: 16px;
+    padding-right: 22px;
+    text-transform: uppercase;
+    font-family: Poppins,sans-serif;
+    font-weight: 900;
+}
+
+.jcIQzP {
+    background-color: rgba(241,241,241,0.4);
+    margin: 16px 0;
+}
+
+.dGrvXb {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    padding: 21px 24px 0;
+}
+
+.gFOUvY {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    font-size: 14px;
+}
+
+.DObVa {
+    margin-bottom: 24px;
+}
+  
+
+
+.eWZmyX {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+}
+
+.fVETNc {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 14px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    align-self: center;
+}
+  
+
+.kEVEoU {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    margin-left: 48px;
+    text-align: left;
+    width: 100%;
+}
+
+.iwwYJD {
+    font-size: 14px;
+    padding-bottom: 0;
+}
+
+.LXClX {
+    font-size: 16px;
+    line-height: 1.54;
+    margin-right: 16px;
+    padding: 4px 0;
+    white-space: nowrap;
+}
+
+
+.LXClX span {
+    font-weight: 700;
+}
+
+.fPJDHT {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-flow: wrap;
+    -ms-flex-flow: wrap;
+    flex-flow: wrap;
+    margin-bottom: 14px;
+}
+
+.fPJDHT .MetaItem__StyledMetaItem-y0ixml-0 {
+    margin-bottom: 8px;
+}
+
+.eUNaBX {
+  background: black;
+  border: 1px solid #0021ff;
+  border-radius: 100px;
+  color: white;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-stretch: normal;
+  font-weight: 700;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-letter-spacing: normal;
+  -moz-letter-spacing: normal;
+  -ms-letter-spacing: normal;
+  letter-spacing: normal;
+  line-height: 1;
+  outline: none;
+  padding: 11px 20px;
+  -webkit-transition: -webkit-transform 0.2s;
+  -webkit-transition: transform 0.2s;
+  transition: transform 0.2s;
+  margin: 10px auto 0 auto;
+  text-align: center;
+  cursor: pointer;
+}
+
+.guYQsv {
+  background: #f7f7f7;
+  font-family: Poppins,sans-serif;
+  font-size: 18px;
+  padding: 123px 72px;
+  text-align: center;
+}
+
+.gOaITw {
+  margin: 20px auto 0 auto;
+  background: black;
+  border: 1px solid #0021ff;
+  border-radius: 100px;
+  color: white;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-stretch: normal;
+  font-weight: 700;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-letter-spacing: normal;
+  -moz-letter-spacing: normal;
+  -ms-letter-spacing: normal;
+  letter-spacing: normal;
+  line-height: 1.54;
+  outline: none;
+  padding: 11px 46px;
+  -webkit-transition: -webkit-transform 0.2s;
+  -webkit-transition: transform 0.2s;
+  transition: transform 0.2s;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
+.cfjPUG {
+  text-align: center;
+  font-size: 35px;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  font-family: Poppins,sans-serif;
+  font-weight: 900;
+}
