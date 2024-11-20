@@ -4,20 +4,20 @@
   "description": "Enhances SJSU class webpages with data from RateMyProfessors.",
   "manifest_version": 3,
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background/background.js"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "src/popup/popup.html"
   },
-  "permissions": ["notifications", "offscreen", "storage", "https://www.ratemyprofessors.com/*"],
+  "permissions": ["notifications", "offscreen", "storage"],
   "host_permissions": [
     "https://www.sjsu.edu/classes/schedules/*", "https://www.ratemyprofessors.com/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://www.sjsu.edu/classes/schedules/fall-2023.php", "https://www.sjsu.edu/classes/schedules/winter-2024.php", "https://www.sjsu.edu/classes/schedules/spring-2024.php"],
+      "matches": ["https://www.sjsu.edu/classes/schedules/*"],
       "css": ["css/jquery.dataTables.min.css"],
-      "js": ["js/jquery.js", "js/jquery.dataTables.min.js", "content.js", "offscreen.js"]
+      "js": ["js/jquery.js", "js/jquery.dataTables.min.js", "src/content/content.js", "src/content/offscreen.js"]
     }
   ],
   "icons": {
