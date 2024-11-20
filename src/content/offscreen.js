@@ -5,15 +5,13 @@ async function handleMessages(message) {
   if (message.target !== 'offscreen') {
     return false;
   }
-  const response = await fetch(message.data);
-  const htmlString = await response.text();
 
   switch (message.type) {
     case 'scrape-professor-data':
-      scrapeProfessorData(htmlString);
+      scrapeProfessorData(message.data);
       break;
     case 'raw-review-data':
-      scrapeReviewData(htmlString);
+      scrapeReviewData(message.data);
       break;
     default:
       console.warn(`Unexpected message type received: '${message.type}'.`);
@@ -21,40 +19,40 @@ async function handleMessages(message) {
   }
 }
 
-function scrapeProfessorData(htmlString) {
-
-  const parser = new DOMParser();
-  const document = parser.parseFromString(htmlString, 'text/html');
+function scrapeProfessorData(data) {
+  console.log('Received data in scrapeProfessorData:', data);
   const professorsMap = {};
-
-  document.querySelectorAll("[class^='TeacherCard__StyledTeacherCard-syjs0d-0']").forEach(function (card) {
-    const nameText = card.querySelector("[class^='CardName__StyledCardName-sc-1gyrgim-0']").textContent;
-    const nameParts = nameText.split(" ");
-    const firstName = nameParts[0];
-    const lastName = nameParts[nameParts.length - 1];
-
-    const overallRating = card.querySelector("[class^='CardNumRating__CardNumRatingNumber-sc-17t4b9u-2']").textContent;
-    const wouldTakeAgain = card.querySelectorAll("[class^='CardFeedback__CardFeedbackNumber-lq6nix-2']")[0].textContent;
-    const levelOfDifficulty = card.querySelectorAll("[class^='CardFeedback__CardFeedbackNumber-lq6nix-2']")[1].textContent;
-    const numberOfRatings = card.querySelector("[class^='CardNumRating__CardNumRatingCount-sc-17t4b9u-3']").textContent;
-    const legacyIDHref = card.getAttribute("href");
-    const legacyID = legacyIDHref.split("/")[4];
-
-    const key = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`;
-    professorsMap[key] = {
-      firstName,
-      lastName,
-      overallRating,
-      wouldTakeAgain,
-      levelOfDifficulty,
-      numberOfRatings,
-      legacyID
-    };
-  });
+  
+  // Correctly navigate the GraphQL response structure
+  if (data?.data?.search?.teachers?.edges) {
+    console.log('Number of professors found:', data.data.search.teachers.edges.length);
+    
+    data.data.search.teachers.edges.forEach(({ node }) => {
+      console.log('Processing professor:', node);
+      const firstName = node.firstName;
+      const lastName = node.lastName;
+      const key = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`;
+      
+      professorsMap[key] = {
+        firstName,
+        lastName,
+        overallRating: node.avgRating?.toString() || 'No Rating',
+        wouldTakeAgain: (node.wouldTakeAgainPercent === -1 ? 'No Rating' : node.wouldTakeAgainPercent?.toString() + '%') || 'No Rating',
+        levelOfDifficulty: node.avgDifficulty?.toString() || 'No Rating',
+        numberOfRatings: node.numRatings?.toString() || '0',
+        legacyID: node.legacyId?.toString()
+      };
+    });
+    
+    console.log('Processed professors map:', professorsMap);
+  } else {
+    console.error('Invalid data structure:', data);
+  }
 
   sendToBackground('scrape-professor-data', professorsMap);
 }
 
+//NOT WORKING ATM
 function scrapeReviewData(htmlString) {
 
   const parser = new DOMParser();

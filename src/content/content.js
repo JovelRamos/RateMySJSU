@@ -26,6 +26,8 @@ function loadProfessorData() {
         reject(chrome.runtime.lastError);
       } else {
         professorData = result.professorsMap;
+        console.log('Loaded professor data:', professorData);
+
         resolve();
       }
     });
@@ -106,7 +108,6 @@ function modifyTable() {
           }
         ],
         "drawCallback": function(settings) {
-          // This function runs every time the table is drawn (e.g., pagination change)
           var api = new jQuery.fn.dataTable.Api(settings);
           api.rows().every(function () {
             var row = this.node();
@@ -211,6 +212,7 @@ function modifyTable() {
               
 
             } else {
+              console.log('Professor not found in RMP data:', key);
               dataTable.cell(row, OVERALL_RATING_INDEX).data('No Rating');
               dataTable.cell(row, DIFFICULTY_RATING_INDEX).data('No Rating');
               dataTable.cell(row, RETAKE_PERCENTAGE_INDEX).data('No Rating');

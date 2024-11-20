@@ -1,11 +1,100 @@
 const OFFSCREEN_DOCUMENT_PATH = 'src/content/offscreen.html';
 
+
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install" || details.reason === "update") {
-    const rmpDataUrl = chrome.runtime.getURL('rmpData.html');
+    const graphqlEndpoint = 'https://www.ratemyprofessors.com/graphql';
+    let allEdges = [];
+    let cursor = null;
+    
+    do {
+      const graphqlQuery = {
+        query: `query TeacherSearchPaginationQuery(
+          $count: Int!
+          $cursor: String
+          $query: TeacherSearchQuery!
+        ) {
+          search: newSearch {
+            teachers(query: $query, first: $count, after: $cursor) {
+              edges {
+                node {
+                  id
+                  legacyId
+                  firstName
+                  lastName
+                  avgRating
+                  numRatings
+                  wouldTakeAgainPercent
+                  avgDifficulty
+                }
+              }
+              resultCount
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+            }
+          }
+        }`,
+        variables: {
+          count: 1000,
+          cursor: cursor,
+          query: {
+            text: "",
+            schoolID: "U2Nob29sLTg4MQ==",
+            fallback: true
+          }
+        }
+      };
+
+      try {
+        console.log('Sending GraphQL request with cursor:', cursor);
+        const response = await fetch(graphqlEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic dGVzdDp0ZXN0',
+            'X-RMP-COMP-ID': 'eZis9xx8zC-20241120'
+          },
+          body: JSON.stringify(graphqlQuery)
+        });
+        
+        const data = await response.json();
+        const edges = data.data.search.teachers.edges;
+        allEdges = [...allEdges, ...edges];
+        
+        console.log('Total results:', data.data.search.teachers.resultCount);
+        console.log('Retrieved edges so far:', allEdges.length);
+        
+        // Get the next cursor
+        cursor = data.data.search.teachers.pageInfo.endCursor;
+        const hasNextPage = data.data.search.teachers.pageInfo.hasNextPage;
+        
+        if (!hasNextPage || !cursor) break;
+        
+        // Add a small delay between requests
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+      } catch (error) {
+        console.error('Fetch error:', error);
+        break;
+      }
+    } while (true);
+
+    const completeData = {
+      data: {
+        search: {
+          teachers: {
+            edges: allEdges
+          }
+        }
+      }
+    };
+    
+    console.log('Final number of professors:', allEdges.length);
     sendMessageToOffscreenDocument(
       'scrape-professor-data',
-      rmpDataUrl
+      completeData
     );
   }
 });
@@ -54,8 +143,8 @@ async function handleMessages(message) {
 
 async function handleScrapedProfessorData(data) {
 
-
   chrome.storage.local.set({ 'professorsMap': data }, function() {
+    
     if (chrome.runtime.lastError) {
       console.error(`Error storing professors data: ${chrome.runtime.lastError}`);
     }
@@ -95,7 +184,7 @@ function showNotification(professorName){
 
   chrome.notifications.create({
     type: 'basic',
-    iconUrl: './icons/icon128.png', // Path to your extension's icon
+    iconUrl: './icons/icon128.png',
     title: 'Review Comment',
     message: notificationMessage,
     priority: 2
