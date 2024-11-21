@@ -40,6 +40,10 @@ function sendToBackground(type, data) {
     type,
     target: 'background',
     data
+  }, response => {
+    if (chrome.runtime.lastError) {
+      console.log('Connection error:', chrome.runtime.lastError.message);
+    }
   });
 }
 
@@ -155,16 +159,18 @@ function modifyTable() {
         var instructorName = jQuery('<div>').html(rowData[9]).find('a').text();
         
         if (instructorName) {
-          var names = instructorName.split(' ');
+          const names = instructorName.split(' ');
           if (names.length >= 2) {
-            var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
-            var professorInfo = professorData[key];
+            const key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
+            const professorInfo = professorData[key];
             if (professorInfo && professorInfo.legacyID) {
-                var theURL = `https://www.ratemyprofessors.com/professor/${professorInfo.legacyID}`;
-                chrome.storage.local.set({ 'reviewUrl': theURL });
-                chrome.storage.local.set({ 'reviewName': instructorName });
-                sendToBackground('raw-review-data', theURL);
-                sendToBackground('notification', instructorName);
+              const encodedId = btoa(`Teacher-${professorInfo.legacyID}`);
+              chrome.storage.local.set({ 
+                'reviewUrl': `https://www.ratemyprofessors.com/professor/${professorInfo.legacyID}`,
+                'reviewName': instructorName 
+              });
+              sendToBackground('scrape-review-data', encodedId);
+              sendToBackground('notification', instructorName);
             }
           }
         }

@@ -152,12 +152,74 @@ async function handleScrapedProfessorData(data) {
   await chrome.offscreen.closeDocument();
 }
 
-async function handleScrapedReviewData(data) {
-
-
-  chrome.storage.local.set({ 'reviewMap': data }, function() {
+async function handleScrapedReviewData(professorId) {
+  const scrapedData = [];
+  const graphqlEndpoint = 'https://www.ratemyprofessors.com/graphql';
+ 
+  const graphqlQuery = {
+    query: `query RatingsListQuery(
+      $count: Int!
+      $id: ID!
+    ) {
+      node(id: $id) {
+        ... on Teacher {
+          ratings(first: $count) {
+            edges {
+              node {
+                helpfulRating
+                difficultyRating  
+                comment
+                wouldTakeAgain
+                class
+                date
+              }
+            }
+          }
+        }
+      }
+    }`,
+    variables: {
+      count: 5,
+      id: professorId
+    }
+  };
+ 
+  try {
+    const response = await fetch(graphqlEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic dGVzdDp0ZXN0',
+        'X-RMP-COMP-ID': 'eZis9xx8zC-20241120'
+      },
+      body: JSON.stringify(graphqlQuery)
+    });
+ 
+    const data = await response.json();
+    const edges = data.data.node.ratings.edges;
+    
+    edges.forEach(edge => {
+      scrapedData.push({
+        qualityRating: edge.node.helpfulRating?.toFixed(1) || '0.0',
+        difficultyRating: edge.node.difficultyRating?.toFixed(1) || '0.0',
+        comments: edge.node.comment,
+        wouldTakeAgain: edge.node.wouldTakeAgain ? 'Yes' : 'No',
+        className: edge.node.class,
+        datePosted: new Date(edge.node.date).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short', 
+          day: 'numeric'
+        })
+      });
+    });
+ 
+  } catch (error) {
+    console.error('Fetch error:', error);
+  }
+ 
+  chrome.storage.local.set({ 'reviewMap': scrapedData }, function() {
     if (chrome.runtime.lastError) {
-      console.error(`Error storing professors data: ${chrome.runtime.lastError}`);
+      console.error(`Error storing review data: ${chrome.runtime.lastError}`);
     } else {
       chrome.runtime.sendMessage({
         type: 'review-data',
@@ -165,18 +227,20 @@ async function handleScrapedReviewData(data) {
       });
     }
   });
-
-
-}
+ }
 
 async function hasDocument() {
-  const matchedClients = await clients.matchAll();
-  for (const client of matchedClients) {
-    if (client.url.endsWith(OFFSCREEN_DOCUMENT_PATH)) {
-      return true;
-    }
+  try {
+    const matchedClients = await chrome.runtime.getContexts({
+      contextTypes: ['OFFSCREEN_DOCUMENT']
+    });
+    return matchedClients.some(client => 
+      client.documentUrl.endsWith(OFFSCREEN_DOCUMENT_PATH)
+    );
+  } catch (e) {
+    console.error('Error checking for offscreen document:', e);
+    return false;
   }
-  return false;
 }
 
 function showNotification(professorName){
@@ -184,7 +248,7 @@ function showNotification(professorName){
 
   chrome.notifications.create({
     type: 'basic',
-    iconUrl: './icons/icon128.png',
+    iconUrl: '/icons/icon128.png',
     title: 'Review Comment',
     message: notificationMessage,
     priority: 2

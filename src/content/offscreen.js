@@ -37,7 +37,7 @@ function scrapeProfessorData(data) {
         firstName,
         lastName,
         overallRating: node.avgRating?.toString() || 'No Rating',
-        wouldTakeAgain: (node.wouldTakeAgainPercent === -1 ? 'No Rating' : node.wouldTakeAgainPercent?.toString() + '%') || 'No Rating',
+        wouldTakeAgain: (node.wouldTakeAgainPercent === -1 ? 'No Rating' : Math.round(node.wouldTakeAgainPercent)?.toString() + '%') || 'No Rating',
         levelOfDifficulty: node.avgDifficulty?.toString() || 'No Rating',
         numberOfRatings: node.numRatings?.toString() || '0',
         legacyID: node.legacyId?.toString()
@@ -52,39 +52,6 @@ function scrapeProfessorData(data) {
   sendToBackground('scrape-professor-data', professorsMap);
 }
 
-//NOT WORKING ATM
-function scrapeReviewData(htmlString) {
-
-  const parser = new DOMParser();
-  const document = parser.parseFromString(htmlString, 'text/html');
-
-  const scrapedData = [];
-
-  Array.from(document.querySelectorAll("[class^='Rating__StyledRating-sc-1rhvpxz-1 jcIQzP']"))
-  .slice(0, 3)
-  .forEach(function (card) {
-
-    const qualityRating = card.querySelector("[class*='CardNumRating__CardNumRatingNumber-sc-17t4b9u-']")?.textContent.trim();
-    const difficultyRating = card.querySelector(".CardNumRating__CardNumRatingNumber-sc-17t4b9u-2.cDKJcc")?.textContent.trim();
-    const comments = card.querySelector(".Comments__StyledComments-dzzyvm-0")?.textContent.trim();
-    const wouldTakeAgain = card.querySelector("span")?.textContent.trim();
-    const className = card.querySelector(".RatingHeader__StyledClass-sc-1dlkqw1-3.eXfReS")?.textContent.trim();
-    const datePosted = card.querySelector(".TimeStamp__StyledTimeStamp-sc-9q2r30-0.bXQmMr")?.textContent.trim();
-
-    scrapedData.push({
-      qualityRating,
-      difficultyRating,
-      comments,
-      wouldTakeAgain,
-      className,
-      datePosted
-    });
-});
-
-  
-  sendToBackground('scrape-review-data', scrapedData);
-
-}
 
 function sendToBackground(type, data) {
 
