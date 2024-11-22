@@ -18,7 +18,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
             teachers(query: $query, first: $count, after: $cursor) {
               edges {
                 node {
-                  id
                   legacyId
                   firstName
                   lastName
@@ -90,31 +89,31 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         }
       }
     };
-    
-    console.log('Final number of professors:', allEdges.length);
-    sendMessageToOffscreenDocument(
-      'scrape-professor-data',
-      completeData
-    );
+
+    const professorsMap = {};
+
+    completeData.data.search.teachers.edges.forEach(({ node }) => {
+      console.log('Processing professor:', node);
+      const firstName = node.firstName;
+      const lastName = node.lastName;
+      const key = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`;
+      
+      professorsMap[key] = {
+        firstName,
+        lastName,
+        overallRating: node.avgRating?.toString() || 'No Rating',
+        wouldTakeAgain: (node.wouldTakeAgainPercent === -1 ? 'No Rating' : Math.round(node.wouldTakeAgainPercent)?.toString() + '%') || 'No Rating',
+        levelOfDifficulty: node.avgDifficulty?.toString() || 'No Rating',
+        numberOfRatings: node.numRatings?.toString() || '0',
+        legacyID: node.legacyId?.toString()
+      };
+    });
+  
+    chrome.storage.local.set({ 'professorsMap': professorsMap });
   }
 });
 
-async function sendMessageToOffscreenDocument(type, data) {
 
-  if (!(await hasDocument())) {
-    await chrome.offscreen.createDocument({
-      url: OFFSCREEN_DOCUMENT_PATH,
-      reasons: [chrome.offscreen.Reason.DOM_PARSER],
-      justification: 'Parse DOM'
-    });
-  }
-
-  chrome.runtime.sendMessage({
-    type,
-    target: 'offscreen',
-    data
-  });
-}
 
 chrome.runtime.onMessage.addListener(handleMessages);
 
@@ -124,14 +123,8 @@ async function handleMessages(message) {
     return;
   }
   switch (message.type) {
-    case 'scrape-professor-data':
-      handleScrapedProfessorData(message.data);
-      break;
-    case 'raw-review-data':
-      sendMessageToOffscreenDocument('raw-review-data', message.data);
-      break;
-    case 'scrape-review-data':
-      handleScrapedReviewData(message.data);
+    case 'fetch-review-data':
+      fetchReviewData(message.data);
       break;
     case 'notification':
       showNotification(message.data);
@@ -141,19 +134,9 @@ async function handleMessages(message) {
   }
 }
 
-async function handleScrapedProfessorData(data) {
 
-  chrome.storage.local.set({ 'professorsMap': data }, function() {
-    
-    if (chrome.runtime.lastError) {
-      console.error(`Error storing professors data: ${chrome.runtime.lastError}`);
-    }
-  });
-  await chrome.offscreen.closeDocument();
-}
-
-async function handleScrapedReviewData(professorId) {
-  const scrapedData = [];
+async function fetchReviewData(professorId) {
+  const reviewData = [];
   const graphqlEndpoint = 'https://www.ratemyprofessors.com/graphql';
  
   const graphqlQuery = {
@@ -199,7 +182,7 @@ async function handleScrapedReviewData(professorId) {
     const edges = data.data.node.ratings.edges;
     
     edges.forEach(edge => {
-      scrapedData.push({
+      reviewData.push({
         qualityRating: edge.node.helpfulRating?.toFixed(1) || '0.0',
         difficultyRating: edge.node.difficultyRating?.toFixed(1) || '0.0',
         comments: edge.node.comment,
@@ -217,7 +200,7 @@ async function handleScrapedReviewData(professorId) {
     console.error('Fetch error:', error);
   }
  
-  chrome.storage.local.set({ 'reviewMap': scrapedData }, function() {
+  chrome.storage.local.set({ 'reviewMap': reviewData }, function() {
     if (chrome.runtime.lastError) {
       console.error(`Error storing review data: ${chrome.runtime.lastError}`);
     } else {
@@ -228,20 +211,6 @@ async function handleScrapedReviewData(professorId) {
     }
   });
  }
-
-async function hasDocument() {
-  try {
-    const matchedClients = await chrome.runtime.getContexts({
-      contextTypes: ['OFFSCREEN_DOCUMENT']
-    });
-    return matchedClients.some(client => 
-      client.documentUrl.endsWith(OFFSCREEN_DOCUMENT_PATH)
-    );
-  } catch (e) {
-    console.error('Error checking for offscreen document:', e);
-    return false;
-  }
-}
 
 function showNotification(professorName){
   const notificationMessage = `Click the extension icon to see ${professorName}'s reviews!`;

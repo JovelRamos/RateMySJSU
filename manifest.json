@@ -9,7 +9,7 @@
   "action": {
     "default_popup": "src/popup/popup.html"
   },
-  "permissions": ["notifications", "offscreen", "storage"],
+  "permissions": ["notifications", "storage"],
   "host_permissions": [
     "https://www.sjsu.edu/classes/schedules/*", "https://www.ratemyprofessors.com/*"
   ],
@@ -17,7 +17,7 @@
     {
       "matches": ["https://www.sjsu.edu/classes/schedules/*"],
       "css": ["css/jquery.dataTables.min.css"],
-      "js": ["js/jquery.js", "js/jquery.dataTables.min.js", "src/content/content.js", "src/content/offscreen.js"]
+      "js": ["js/jquery.js", "js/jquery.dataTables.min.js", "src/content/content.js"]
     }
   ],
   "icons": {

@@ -169,7 +169,7 @@ function modifyTable() {
                 'reviewUrl': `https://www.ratemyprofessors.com/professor/${professorInfo.legacyID}`,
                 'reviewName': instructorName 
               });
-              sendToBackground('scrape-review-data', encodedId);
+              sendToBackground('fetch-review-data', encodedId);
               sendToBackground('notification', instructorName);
             }
           }
