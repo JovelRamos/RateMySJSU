@@ -1,6 +1,6 @@
 {
-  "name": "SJSU RMP Extension",
-  "version": "1.0",
+  "name": "RateMySJSU",
+  "version": "2.1",
   "description": "Enhances SJSU class webpages with data from RateMyProfessors.",
   "manifest_version": 3,
   "background": {
@@ -11,7 +11,7 @@
   },
   "permissions": ["notifications", "storage"],
   "host_permissions": [
-    "https://www.sjsu.edu/classes/schedules/*", "https://www.ratemyprofessors.com/*"
+    "https://www.sjsu.edu/classes/schedules/*", "https://www.ratemyprofessors.com/graphql/*"
   ],
   "content_scripts": [
     {

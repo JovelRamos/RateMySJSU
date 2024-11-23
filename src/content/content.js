@@ -3,6 +3,7 @@ let dataTable;
 
 removeButton();
 
+
 loadProfessorData().then(() => {
   if (window.jQuery && jQuery.fn.DataTable.isDataTable('#classSchedule')) {
     dataTable = jQuery('#classSchedule').DataTable();
@@ -10,6 +11,7 @@ loadProfessorData().then(() => {
   modifyTable();
 });
 
+//remove "Load Class Schedule button"
 function removeButton() {
   var button = document.getElementById('btnLoadTable');
   if (button) {
@@ -17,6 +19,7 @@ function removeButton() {
   }
 }
 
+// loads professor data from chrome.storage.local
 function loadProfessorData() {
 
   return new Promise((resolve, reject) => {
@@ -26,15 +29,13 @@ function loadProfessorData() {
         reject(chrome.runtime.lastError);
       } else {
         professorData = result.professorsMap;
-        console.log('Loaded professor data:', professorData);
-
         resolve();
       }
     });
   });
 }
 
-
+//send message to background script to fetch review data
 function sendToBackground(type, data) {
   chrome.runtime.sendMessage({
     type,
@@ -42,210 +43,172 @@ function sendToBackground(type, data) {
     data
   }, response => {
     if (chrome.runtime.lastError) {
-      console.log('Connection error:', chrome.runtime.lastError.message);
+      console.error('Connection error:', chrome.runtime.lastError.message);
     }
   });
 }
 
 
-
+// modifies and enhances class schedule table, adding RMP values
 function modifyTable() {
-
+  // Custom sorting for ratings
   jQuery.extend(jQuery.fn.dataTableExt.oSort, {
     "rating-pre": function (data) {
       return data === 'No Rating' ? -1 : parseFloat(data) || 0;
     },
     "rating-asc": function (a, b) {
-      return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+      return a < b ? -1 : (a > b ? 1 : 0);
     },
     "rating-desc": function (a, b) {
-      return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+      return a < b ? 1 : (a > b ? -1 : 0);
     }
   });
 
-
-  if (window.jQuery) {
-    if (typeof jQuery.fn.DataTable === 'function') {
-      if (jQuery.fn.DataTable.isDataTable('#classSchedule')) {
-        dataTable = jQuery('#classSchedule').DataTable();
-        dataTable.destroy();
-      }
-
-      const OVERALL_RATING_INDEX = 14;
-      const DIFFICULTY_RATING_INDEX = 15;
-      const RETAKE_PERCENTAGE_INDEX = 16;
-      const NUMBER_OF_RATINGS_INDEX = 17;
-
-      jQuery('#classSchedule').removeClass('hide');
-
-      const theadTr = jQuery('#classSchedule thead tr');
-      theadTr.append('<th>Average Rating</th>');
-      theadTr.append('<th>Difficulty Level</th>');
-      theadTr.append('<th>Would Take Again %</th>');
-      theadTr.append('<th>Review Count</th>');
-      theadTr.append('<th>Reviews</th>');
-      
-
-      const tbodyTrs = jQuery('#classSchedule tbody tr');
-      tbodyTrs.each(function () {
-        jQuery(this).append('<td></td>');
-        jQuery(this).append('<td></td>');
-        jQuery(this).append('<td></td>');
-        jQuery(this).append('<td></td>');
-        jQuery(this).append('<td class="actions-cell"></td>');
-      });
-
-      var addButtonSrc = chrome.runtime.getURL("./icons/add.png");
-      var commentButtonSrc = chrome.runtime.getURL("./icons/comment.png");
-
-      dataTable = jQuery('#classSchedule').DataTable({
-        "columnDefs": [
-          { "className": "dt-center", "targets": "_all" },
-          { "searchable": false, "targets": [3, 5, 6, 7, 8, 10, 11, 12, 13, 14] },
-          { "type": "rating", "targets": [OVERALL_RATING_INDEX, DIFFICULTY_RATING_INDEX, RETAKE_PERCENTAGE_INDEX] },
-          {
-            "targets": -1,
-            "orderable": false,
-            "data": null,
-            "defaultContent": '<button class="action-btn action-btn-spacing add-btn"><img src="' + addButtonSrc + '" alt="Add"/></button>' +
-            '<button class="action-btn comment-btn"><img src="' + commentButtonSrc + '" alt="Comment"/></button>'
-          }
-        ],
-        "drawCallback": function(settings) {
-          var api = new jQuery.fn.dataTable.Api(settings);
-          api.rows().every(function () {
-            var row = this.node();
-            var data = this.data();
-            var instructorName = jQuery('<div>').html(data[9]).find('a').text(); // Adjust the index if necessary
-            
-            if (instructorName) {
-              var names = instructorName.split(' ');
-              if (names.length >= 2) {
-                var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
-                var professorInfo = professorData[key];
-    
-                if (professorInfo) {
-                  jQuery(row).find('.action-btn').show();
-                  jQuery(row).find('.comment-btn').show();
-              }
-            }
-          }
-          });
-        },
-        "destroy": true
-      });
-
-
-
-      $('#classSchedule').on('click', '.add-btn', function () {
-        var rowData = dataTable.row(jQuery(this).parents('tr')).data();
-        var instructorName = jQuery('<div>').html(rowData[9]).find('a').text();
-        
-        if (instructorName) {
-          var names = instructorName.split(' ');
-          if (names.length >= 2) {
-            var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
-            var professorInfo = professorData[key];
-            if (professorInfo && professorInfo.legacyID) {
-              var addUrl = 'https://www.ratemyprofessors.com/add/professor-rating/' + professorInfo.legacyID;
-              window.open(addUrl, '_blank');
-            }
-          }
-        }
-      });
-      
-      $('#classSchedule').on('click', '.comment-btn', function () {
-        var rowData = dataTable.row(jQuery(this).parents('tr')).data();
-        var instructorName = jQuery('<div>').html(rowData[9]).find('a').text();
-        
-        if (instructorName) {
-          const names = instructorName.split(' ');
-          if (names.length >= 2) {
-            const key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
-            const professorInfo = professorData[key];
-            if (professorInfo && professorInfo.legacyID) {
-              const encodedId = btoa(`Teacher-${professorInfo.legacyID}`);
-              chrome.storage.local.set({ 
-                'reviewUrl': `https://www.ratemyprofessors.com/professor/${professorInfo.legacyID}`,
-                'reviewName': instructorName 
-              });
-              sendToBackground('fetch-review-data', encodedId);
-              sendToBackground('notification', instructorName);
-            }
-          }
-        }
-      });
-
-      dataTable.rows().every(function () {
-        var row = this.node();
-        var rowData = this.data();
-        var cellHtml = rowData[9];
-
-        var instructorName = jQuery('<div>').html(cellHtml).find('a').text();
-
-        if (instructorName) {
-          var names = instructorName.split(' ');
-          if (names.length >= 2) {
-            var key = `${names[0].toLowerCase()}_${names[1].toLowerCase()}`;
-
-            var professorInfo = professorData[key];
-            if (professorInfo) {
-              if (parseInt(professorInfo.numberOfRatings) === 0) {
-                dataTable.cell(row, OVERALL_RATING_INDEX).data('No Rating');
-                dataTable.cell(row, DIFFICULTY_RATING_INDEX).data('No Rating');
-                dataTable.cell(row, RETAKE_PERCENTAGE_INDEX).data('No Rating');
-                dataTable.cell(row, NUMBER_OF_RATINGS_INDEX).data('0');
-              } else {
-              var displayRating = professorInfo.overallRating;
-              if (displayRating !== 'No Rating' && displayRating.endsWith('.0')) {
-                displayRating = displayRating.slice(0, -2);
-              }
-
-              dataTable.cell(row, OVERALL_RATING_INDEX).data(
-                displayRating !== 'No Rating' ? displayRating + '/5' : 'No Rating'
-              );
-              dataTable.cell(row, DIFFICULTY_RATING_INDEX).data(
-                professorInfo.levelOfDifficulty !== 'No Rating' ? professorInfo.levelOfDifficulty : 'No Rating'
-              );
-              dataTable.cell(row, RETAKE_PERCENTAGE_INDEX).data(
-                professorInfo.wouldTakeAgain !== 'No Rating' ? professorInfo.wouldTakeAgain : 'No Rating'
-              );
-              dataTable.cell(row, NUMBER_OF_RATINGS_INDEX).data(parseInt(professorInfo.numberOfRatings));
-              }
-              jQuery(row).find('.action-btn').show();
-              jQuery(row).find('.comment-btn').show();
-
-              
-
-            } else {
-              console.log('Professor not found in RMP data:', key);
-              dataTable.cell(row, OVERALL_RATING_INDEX).data('No Rating');
-              dataTable.cell(row, DIFFICULTY_RATING_INDEX).data('No Rating');
-              dataTable.cell(row, RETAKE_PERCENTAGE_INDEX).data('No Rating');
-              dataTable.cell(row, NUMBER_OF_RATINGS_INDEX).data('0');
-            }
-          } else {
-            console.error('Instructor name does not have at least two parts:', instructorName);
-          }
-        } else {
-          dataTable.cell(row, OVERALL_RATING_INDEX).data('No Rating');
-          dataTable.cell(row, DIFFICULTY_RATING_INDEX).data('No Rating');
-          dataTable.cell(row, RETAKE_PERCENTAGE_INDEX).data('No Rating');
-          dataTable.cell(row, NUMBER_OF_RATINGS_INDEX).data('0');
-        }
-      });
-
-      dataTable.columns.adjust().draw();
-      dataTable.draw();
-
-    } else {
-      setTimeout(modifyTable, 100);
-    }
-  } else {
+  if (!window.jQuery) {
     console.error('jQuery is not available.');
+    return;
   }
 
-  
+  if (typeof jQuery.fn.DataTable !== 'function') {
+    setTimeout(modifyTable, 100);
+    return;
+  }
+
+  const COLUMN_INDICES = {
+    OVERALL_RATING: 14,
+    DIFFICULTY_RATING: 15,
+    RETAKE_PERCENTAGE: 16,
+    NUMBER_OF_RATINGS: 17,
+    INSTRUCTOR_NAME: 9
+  };
+
+  // Destroy existing DataTable if it exists
+  if (jQuery.fn.DataTable.isDataTable('#classSchedule')) {
+    jQuery('#classSchedule').DataTable().destroy();
+  }
+
+  // add new columns
+  const newColumns = ['Average Rating', 'Difficulty Level', 'Would Take Again %', 'Review Count', 'Reviews'];
+  const theadTr = jQuery('#classSchedule thead tr');
+  newColumns.forEach(col => theadTr.append(`<th>${col}</th>`));
+
+  // Add empty cells for new columns
+  const tbodyTrs = jQuery('#classSchedule tbody tr');
+  tbodyTrs.each(function() {
+    jQuery(this).append('<td></td>'.repeat(4));
+    jQuery(this).append('<td class="actions-cell"></td>');
+  });
+
+  // Initialize DataTable
+  const commentButtonSrc = chrome.runtime.getURL("./icons/comment.png");
+  const dataTable = jQuery('#classSchedule').DataTable({
+    columnDefs: [
+      { className: "dt-center", targets: "_all" },
+      { searchable: false, targets: [3, 5, 6, 7, 8, 10, 11, 12, 13, 14] },
+      { type: "rating", targets: [COLUMN_INDICES.OVERALL_RATING, COLUMN_INDICES.DIFFICULTY_RATING, COLUMN_INDICES.RETAKE_PERCENTAGE] },
+      {
+        targets: -1,
+        orderable: false,
+        data: null,
+        defaultContent: `<button class="action-btn comment-btn"><img src="${commentButtonSrc}" alt="Comment"/></button>`
+      }
+    ],
+    drawCallback: function(settings) {
+      const api = new jQuery.fn.dataTable.Api(settings);
+      api.rows().every(function() {
+        const row = this.node();
+        const instructorName = getInstructorName(this.data()[COLUMN_INDICES.INSTRUCTOR_NAME]);
+        if (instructorName) {
+          const professorKey = getProfessorKey(instructorName);
+          if (professorKey && professorData[professorKey]) {
+            jQuery(row).find('.comment-btn').show();
+          }
+        }
+      });
+    },
+    destroy: true
+  });
+
+  // helper functions
+  function getInstructorName(cellHtml) {
+    return jQuery('<div>').html(cellHtml).find('a').text() || '';
+  }
+
+  function getProfessorKey(instructorName) {
+    const names = instructorName.split(' ');
+    return names.length >= 2 ? `${names[0].toLowerCase()}_${names[1].toLowerCase()}` : null;
+  }
+
+  function updateCellData(row, professorInfo) {
+    const defaultData = {
+      [COLUMN_INDICES.OVERALL_RATING]: 'No Rating',
+      [COLUMN_INDICES.DIFFICULTY_RATING]: 'No Rating',
+      [COLUMN_INDICES.RETAKE_PERCENTAGE]: 'No Rating',
+      [COLUMN_INDICES.NUMBER_OF_RATINGS]: '0'
+    };
+
+    if (!professorInfo || parseInt(professorInfo.numberOfRatings) === 0) {
+      Object.entries(defaultData).forEach(([index, value]) => {
+        dataTable.cell(row, index).data(value);
+      });
+      return;
+    }
+
+    let displayRating = professorInfo.overallRating;
+    if (displayRating !== 'No Rating' && displayRating.endsWith('.0')) {
+      displayRating = displayRating.slice(0, -2);
+    }
+
+    dataTable.cell(row, COLUMN_INDICES.OVERALL_RATING).data(
+      displayRating !== 'No Rating' ? `${displayRating}/5` : 'No Rating'
+    );
+    dataTable.cell(row, COLUMN_INDICES.DIFFICULTY_RATING).data(professorInfo.levelOfDifficulty);
+    dataTable.cell(row, COLUMN_INDICES.RETAKE_PERCENTAGE).data(professorInfo.wouldTakeAgain);
+    dataTable.cell(row, COLUMN_INDICES.NUMBER_OF_RATINGS).data(parseInt(professorInfo.numberOfRatings));
+  }
+
+  // handle comment button clicks
+  jQuery('#classSchedule').on('click', '.comment-btn', function() {
+    const rowData = dataTable.row(jQuery(this).parents('tr')).data();
+    const instructorName = getInstructorName(rowData[COLUMN_INDICES.INSTRUCTOR_NAME]);
+    
+    if (instructorName) {
+      const professorKey = getProfessorKey(instructorName);
+      const professorInfo = professorData[professorKey];
+      
+      if (professorInfo?.legacyID) {
+        const encodedId = btoa(`Teacher-${professorInfo.legacyID}`);
+        chrome.storage.local.set({ 
+          'reviewUrl': `https://www.ratemyprofessors.com/professor/${professorInfo.legacyID}`,
+          'reviewName': instructorName 
+        });
+        sendToBackground('fetch-review-data', encodedId);
+        sendToBackground('notification', instructorName);
+      }
+    }
+  });
+
+  // Update all rows with professor data
+  dataTable.rows().every(function() {
+    const row = this.node();
+    const instructorName = getInstructorName(this.data()[COLUMN_INDICES.INSTRUCTOR_NAME]);
+    
+    if (instructorName) {
+      const professorKey = getProfessorKey(instructorName);
+      const professorInfo = professorData[professorKey];
+      
+      updateCellData(row, professorInfo);
+      
+      if (professorInfo) {
+        jQuery(row).find('.action-btn, .comment-btn').show();
+      }
+    } else {
+      updateCellData(row, null);
+    }
+  });
+
+  jQuery('#classSchedule').removeClass('hide');
+  dataTable.columns.adjust().draw();
 }
 
 

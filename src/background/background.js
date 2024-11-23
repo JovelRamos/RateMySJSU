@@ -1,6 +1,6 @@
 const OFFSCREEN_DOCUMENT_PATH = 'src/content/offscreen.html';
 
-
+//Queries all RateMyProfessors' data for SJSU professors
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install" || details.reason === "update") {
     const graphqlEndpoint = 'https://www.ratemyprofessors.com/graphql';
@@ -47,7 +47,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       };
 
       try {
-        console.log('Sending GraphQL request with cursor:', cursor);
         const response = await fetch(graphqlEndpoint, {
           method: 'POST',
           headers: {
@@ -62,8 +61,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         const edges = data.data.search.teachers.edges;
         allEdges = [...allEdges, ...edges];
         
-        console.log('Total results:', data.data.search.teachers.resultCount);
-        console.log('Retrieved edges so far:', allEdges.length);
         
         // Get the next cursor
         cursor = data.data.search.teachers.pageInfo.endCursor;
@@ -80,6 +77,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       }
     } while (true);
 
+    console.log("All professors exctracted.");
+    
     const completeData = {
       data: {
         search: {
@@ -93,7 +92,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     const professorsMap = {};
 
     completeData.data.search.teachers.edges.forEach(({ node }) => {
-      console.log('Processing professor:', node);
       const firstName = node.firstName;
       const lastName = node.lastName;
       const key = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`;
@@ -117,7 +115,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
 chrome.runtime.onMessage.addListener(handleMessages);
 
-
+// message handler for background.js
 async function handleMessages(message) {
   if (message.target !== 'background') {
     return;
@@ -134,7 +132,7 @@ async function handleMessages(message) {
   }
 }
 
-
+// fetches review data from user-selected professor 
 async function fetchReviewData(professorId) {
   const reviewData = [];
   const graphqlEndpoint = 'https://www.ratemyprofessors.com/graphql';
@@ -212,6 +210,7 @@ async function fetchReviewData(professorId) {
   });
  }
 
+ // notifies user of newly available review
 function showNotification(professorName){
   const notificationMessage = `Click the extension icon to see ${professorName}'s reviews!`;
 

@@ -2,6 +2,7 @@ chrome.runtime.onMessage.addListener(handleMessages);
 var reviewUrl;
 var profName;
 
+//handles incoming messages for popup.js
 function handleMessages(message) {
   if (message.target !== 'popup') return;
 
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
   fetchAndDisplayData();
 });
 
+// retrieves review data from storage and starts displayData()
 function fetchAndDisplayData() {
   chrome.storage.local.get(['reviewMap', 'reviewUrl', 'reviewName'], function(result) {
     if (chrome.runtime.lastError) {
@@ -32,7 +34,7 @@ function fetchAndDisplayData() {
   });
 }
 
-
+//renders professor review data in popup UI
 function displayData(data) {
   const container = document.getElementById('dataContainer');
   container.innerHTML = '';
@@ -68,7 +70,6 @@ function displayData(data) {
 
     return;
   }
-
 
 
   data.forEach(review => {
@@ -120,6 +121,7 @@ function displayData(data) {
 
 }
 
+  //apends "load more ratings" button and opens full RMP page when clicked
 function appendLoadMoreButton(container) {
   const loadMoreButton = document.createElement('button');
   loadMoreButton.className = 'eUNaBX';
@@ -134,6 +136,7 @@ function appendLoadMoreButton(container) {
   container.appendChild(loadMoreButton);
 }
 
+//dynamic coloring by determining CSS class baced on rating display
 function getQualityRatingClass(qualityRating) {
   const rating = parseFloat(qualityRating);
   if (rating <= 2.5) return 'bUneqk'; // Red for low rating
@@ -141,6 +144,7 @@ function getQualityRatingClass(qualityRating) {
   return 'gcFhmN'; // Green for high rating
 }
 
+//extracts last segment from URL
 function getLastPartOfUrl(url) {
   const parts = url.split('/');
   return parts.pop() || parts.pop();
