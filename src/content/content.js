@@ -64,6 +64,7 @@ function modifyTable() {
     }
   });
 
+
   if (!window.jQuery) {
     console.error('jQuery is not available.');
     return;
@@ -136,7 +137,7 @@ function modifyTable() {
 
   function getProfessorKey(instructorName) {
     const names = instructorName.split(' ');
-    return names.length >= 2 ? `${names[0].toLowerCase()}_${names[1].toLowerCase()}` : null;
+    return names.length >= 2 ? `${names[0].toLowerCase()}_${names[names.length - 1].toLowerCase()}` : null;
   }
 
   function updateCellData(row, professorInfo) {

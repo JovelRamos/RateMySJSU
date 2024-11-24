@@ -92,13 +92,18 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     const professorsMap = {};
 
     completeData.data.search.teachers.edges.forEach(({ node }) => {
-      const firstName = node.firstName;
-      const lastName = node.lastName;
+
+      const firstNameParts = node.firstName.split(' ');
+      const lastNameParts = node.lastName.split(' ');
+
+
+      const firstName = firstNameParts[0];
+      const lastName = lastNameParts[lastNameParts.length - 1];
       const key = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`;
       
       professorsMap[key] = {
-        firstName,
-        lastName,
+        firstName: node.firstName,
+        lastName: node.lastName,
         overallRating: node.avgRating?.toString() || 'No Rating',
         wouldTakeAgain: (node.wouldTakeAgainPercent === -1 ? 'No Rating' : Math.round(node.wouldTakeAgainPercent)?.toString() + '%') || 'No Rating',
         levelOfDifficulty: node.avgDifficulty?.toString() || 'No Rating',
